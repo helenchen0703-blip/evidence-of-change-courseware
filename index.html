@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 24 · Evidence of Change</title>
+<style>
+  :root {
+    --bg: #f8f9fb; --ink: #1c2e49; --body: #303944; --muted: #6b7280; --teal: #1d898e; --gold: #e0a526;
+    --hl: #ffe27a; --miss: #ffb4a8; --card: #ffffff; --line: #e0e4e8;
+    --blue: #e5f0fb; --blueT: #2c5e93; --purple: #efe9f8; --purpleT: #674f9a; --yellow: #fbf0da; --yellowT: #9a6a12;
+    --green: #e2f3ee; --greenT: #1d7a5f; --rose: #fbe7e7; --roseT: #a33b3b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, "PingFang SC", sans-serif; color: var(--ink); background: var(--bg); overflow: hidden; }
+  button { font: inherit; cursor: pointer; }
+  textarea, input { font: inherit; }
+
+  /* ---------- HUB ---------- */
+  #hub { position: fixed; inset: 0; background: radial-gradient(circle at 20% 10%, #24476b 0, transparent 45%), radial-gradient(circle at 85% 90%, #1d5f5f 0, transparent 45%), linear-gradient(160deg, #15233a, #0e1626); color: #f4efe6; display: flex; flex-direction: column; align-items: center; padding: 4vh 16px; overflow: auto; }
+  #hub .eyebrow { letter-spacing: .3em; font-size: 13px; opacity: .7; text-align: center; }
+  #hub h1 { font-size: clamp(32px, 5.4vw, 58px); margin: 6px 0 2px; letter-spacing: .02em; text-align: center; }
+  #hub .tag { opacity: .85; margin-bottom: 3vh; font-size: 17px; text-align: center; }
+  .fan { position: relative; width: min(1000px, 100%); height: min(42vh, 330px); flex-shrink: 0; }
+  .fcard { position: absolute; bottom: 0; width: clamp(110px, 14vw, 160px); aspect-ratio: 3/4.2; border-radius: 18px; border: 3px solid rgba(255,255,255,.85); box-shadow: 0 14px 30px rgba(0,0,0,.45); display: flex; flex-direction: column; justify-content: space-between; padding: 12px; color: #fff; transition: transform .25s; transform-origin: 50% 120%; text-align: left; overflow: hidden; }
+  .fcard .em { font-size: clamp(38px, 5vw, 58px); text-align: center; margin-top: 18%; }
+  .fcard .num { position: absolute; top: 9px; left: 12px; font-weight: 700; opacity: .85; }
+  .fcard .done { position: absolute; top: 8px; right: 10px; font-size: 14px; }
+  .fcard .nm { font-weight: 700; font-size: clamp(14px, 1.6vw, 17px); }
+  .fcard .sm { font-size: 12px; opacity: .9; }
+  .fcard:hover { z-index: 10 !important; }
+  #hubInfo { margin-top: 4vh; width: min(760px, 100%); background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.15); border-radius: 14px; padding: 14px 18px; display: flex; gap: 16px; align-items: center; }
+  #hubInfo .big { font-size: 40px; }
+  #hubInfo h3 { margin: 0 0 3px; font-size: 19px; }
+  #hubInfo p { margin: 0; opacity: .8; font-size: 14px; font-family: "PingFang SC", sans-serif; }
+  #hubInfo button { margin-left: auto; background: var(--gold); color: #1b1b1b; border: 0; border-radius: 10px; padding: 10px 16px; font-weight: 700; white-space: nowrap; }
+  .hubtools { margin-top: 2vh; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .hubtools button { background: rgba(255,255,255,.1); color: #f4efe6; border: 1px solid rgba(255,255,255,.25); border-radius: 10px; padding: 8px 14px; font-size: 14px; font-family: "PingFang SC", sans-serif; }
+  #hub .hint { margin-top: auto; padding-top: 2vh; font-size: 12px; opacity: .55; font-family: "PingFang SC", sans-serif; text-align: center; }
+
+  /* ---------- DECK ---------- */
+  #deck { position: fixed; inset: 0; display: none; flex-direction: column; }
+  .bar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: #eef1f5; border-bottom: 1px solid var(--line); font-size: 14px; flex-wrap: wrap; }
+  .bar button { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 5px 10px; }
+  .bar .title { font-weight: 700; margin-left: 6px; }
+  .dots { display: flex; gap: 4px; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #cfd6df; }
+  .dot.on { background: var(--teal); }
+  .stage { flex: 1; display: flex; justify-content: center; padding: 3vh 4vw; overflow: auto; }
+  .slide { width: 100%; max-width: 1100px; margin: auto 0; text-align: center; font-size: calc(var(--fs, 1) * 1rem); }
+  .note { background: #fff8e8; border-top: 1px dashed #e5c98a; padding: 6px 16px; font-family: "PingFang SC", sans-serif; font-size: 14px; color: #6b5a33; min-height: 34px; }
+  .note.hide { display: none; }
+
+  .kick { color: var(--teal); font-weight: 700; letter-spacing: .14em; font-size: .9em; text-transform: uppercase; }
+  .em-big { font-size: 5.5em; line-height: 1.1; }
+  .h-big { font-size: 3.6em; font-weight: 700; margin: .1em 0; }
+  .h-mid { font-size: 2.3em; font-weight: 700; margin: .2em 0 .5em; }
+  .sub { font-size: 1.5em; color: var(--muted); }
+  .quote { font-size: 1.7em; line-height: 1.5; margin: .2em auto .8em; max-width: 900px; }
+  .callout { margin-top: 3vh; font-size: 1.5em; font-weight: 700; color: var(--teal); }
+
+  .cards { display: grid; grid-template-columns: repeat(var(--n, 3), 1fr); gap: 1.4vw; text-align: left; }
+  .c { border: 1px solid var(--line); border-radius: 16px; padding: 1em 1.1em; font-size: 1.3em; line-height: 1.45; color: var(--body); min-height: 7em; }
+  .c b { display: block; font-size: .8em; letter-spacing: .08em; margin-bottom: .4em; }
+  .c.blue { background: var(--blue); } .c.blue b { color: var(--blueT); }
+  .c.purple { background: var(--purple); } .c.purple b { color: var(--purpleT); }
+  .c.yellow { background: var(--yellow); } .c.yellow b { color: var(--yellowT); }
+  .c.green { background: var(--green); } .c.green b { color: var(--greenT); }
+  .c.rose { background: var(--rose); } .c.rose b { color: var(--roseT); }
+  .c.hidden { cursor: pointer; }
+  .c.hidden .body { filter: blur(6px); opacity: .5; }
+
+  .journey { display: grid; grid-template-columns: repeat(10, 1fr); gap: .6vw; margin: 2vh 0 3vh; }
+  .jstop { background: var(--blue); border: 1px solid var(--line); border-radius: 14px; padding: .6em .2em; cursor: pointer; transition: .15s; }
+  .jstop .n { font-size: 2em; font-weight: 700; color: var(--blueT); }
+  .jstop .l { font-size: .75em; font-weight: 700; letter-spacing: .04em; }
+  .jstop.today { background: var(--green); border: 2px solid var(--greenT); }
+  .jstop.today .n { color: var(--greenT); }
+  .jstop.pick { background: var(--hl); transform: translateY(-6px); }
+
+  .bigbtn { margin-top: 2vh; background: var(--teal); color: #fff; border: 0; border-radius: 12px; padding: .5em 1.1em; font-size: 1.2em; font-weight: 700; }
+  .ghost { background: #fff; color: var(--ink); border: 2px solid var(--line); }
+  .btnrow { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 1.5vh; }
+  .btnrow .bigbtn { margin-top: 0; font-size: 1.05em; }
+  .bigbtn.rec { background: #c0392b; }
+
+  .passage { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 3vh 3vw; text-align: left; font-size: 1.7em; line-height: 1.9; }
+  .w { border-radius: 6px; padding: 0 .05em; cursor: pointer; }
+  .w.mark { background: var(--miss); }
+  .w.stress { font-weight: 700; text-decoration: underline; text-decoration-color: var(--gold); text-decoration-thickness: 3px; }
+  .w.cut::after { content: " /"; color: var(--teal); font-weight: 700; }
+  .modes { display: inline-flex; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; margin-bottom: 1.5vh; }
+  .modes button { border: 0; background: #fff; padding: .45em 1em; font-size: 1em; }
+  .modes button.on { background: var(--ink); color: #fff; }
+  .timer { font-variant-numeric: tabular-nums; font-size: 1.4em; font-weight: 700; color: var(--ink); margin-left: 10px; }
+  audio { vertical-align: middle; margin: 0 6px; height: 36px; }
+  .tally { font-size: 1.05em; color: var(--muted); margin-top: 1vh; font-family: "PingFang SC", sans-serif; }
+
+  table.grid { margin: 0 auto; border-collapse: separate; border-spacing: 0; font-size: 1.25em; background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  table.grid th { background: var(--ink); color: #fff; padding: .55em .9em; font-weight: 700; }
+  table.grid td { padding: .45em .7em; border-top: 1px solid var(--line); }
+  table.grid td:first-child { text-align: left; font-weight: 700; background: var(--blue); }
+  .pills { display: inline-flex; gap: 4px; }
+  .pill { width: 2em; height: 2em; border-radius: 50%; border: 2px solid var(--line); background: #fff; font-weight: 700; color: var(--body); }
+  .pill.on { background: var(--teal); border-color: var(--teal); color: #fff; }
+  .pill.t.on { background: var(--gold); border-color: var(--gold); color: #1b1b1b; }
+  .legend { font-size: .95em; color: var(--muted); margin-top: 1.2vh; font-family: "PingFang SC", sans-serif; }
+
+  .frames { display: grid; gap: 1.6vh; text-align: left; max-width: 980px; margin: 0 auto; }
+  .frame { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: .7em 1em; }
+  .frame label { display: block; font-size: 1.25em; font-weight: 700; color: var(--ink); margin-bottom: .35em; }
+  .frame textarea { width: 100%; border: 1px dashed #c9d1db; border-radius: 10px; padding: .5em .7em; font-size: 1.2em; resize: vertical; min-height: 2.6em; background: #fbfcfd; color: var(--body); }
+  .frame textarea:focus { outline: 2px solid var(--teal); background: #fff; }
+  .choice { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: .4em; }
+  .choice button { border: 2px solid var(--line); background: #fff; border-radius: 10px; padding: .3em .9em; font-size: 1.1em; }
+  .choice button.on { background: var(--teal); color: #fff; border-color: var(--teal); }
+
+  .scale { font-size: 1.5em; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; margin: 2vh 0 1vh; flex-wrap: wrap; }
+  .scale .pill { width: 2.2em; height: 2.2em; }
+
+  .rank { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1vw; text-align: left; }
+  .rank .c { cursor: pointer; position: relative; min-height: 8em; transition: .15s; }
+  .rank .c.on { outline: 3px solid var(--teal); transform: translateY(-4px); }
+  .rank .badge { position: absolute; top: -12px; right: -8px; background: var(--teal); color: #fff; border-radius: 50%; width: 1.8em; height: 1.8em; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+
+  .mission { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2vw; text-align: left; }
+  .mission .c { cursor: pointer; min-height: 6em; }
+  .mission .c .min { font-size: .85em; color: var(--muted); }
+
+  .summary { text-align: left; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 1em 1.3em; font-size: 1em; max-height: 56vh; overflow: auto; white-space: pre-wrap; font-family: "PingFang SC", Menlo, monospace; line-height: 1.6; }
+  .finale { display: inline-block; border: 8px double var(--gold); border-radius: 36px; padding: 4vh 5vw; background: #fffaf0; }
+
+  @media (max-width: 760px) {
+    .slide { font-size: calc(var(--fs, 1) * .7rem); }
+    .cards, .mission { grid-template-columns: 1fr 1fr; }
+    .rank { grid-template-columns: 1fr 1fr; }
+    .journey { grid-template-columns: repeat(5, 1fr); }
+    .fcard { width: 92px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="hub">
+  <div class="eyebrow">PHASE 2 · LESSON 24 · READY</div>
+  <h1>📈 Evidence of Change</h1>
+  <div class="tag">From “I think I improved” → “Here is my proof.”</div>
+  <div class="fan" id="fan"></div>
+  <div id="hubInfo"></div>
+  <div class="hubtools">
+    <button id="toSummary">📋 课堂记录汇总</button>
+    <button id="resetAll">🗑 清空本设备上的记录</button>
+  </div>
+  <div class="hint">鼠标移到卡片上看介绍，点击进入 · 课件里 ← → 翻页，N 显示/隐藏老师提示，Esc 回到总入口 · 课上填写和打分只存在这台设备的浏览器里</div>
+</div>
+
+<div id="deck">
+  <div class="bar">
+    <button id="home">⌂ Lesson 24</button>
+    <span class="title" id="dtitle"></span>
+    <div class="dots" id="dots"></div>
+    <button id="prev">‹</button><span id="count"></span><button id="next">›</button>
+    <button id="fsm">A−</button><button id="fsp">A+</button>
+    <button id="ntog">老师提示</button>
+  </div>
+  <div class="stage"><div class="slide" id="slide"></div></div>
+  <div class="note" id="note"></div>
+</div>
+
+<script>
+const PASSAGE = 'Starting a new school year can feel exciting and stressful at the same time. Students often have more homework, new responsibilities, and less free time. A good plan can help, but a plan only works when a student takes action. Independent learners do not wait for someone to tell them every next step. They notice what needs to be done, choose what is most important, and begin. When they make mistakes, they reflect, adjust, and try again.';
+
+// ---------- storage (this device only) ----------
+const KEY = 'lesson24_evidence_v1';
+let DB = {};
+try { DB = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { DB = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} };
+const get = (k, d) => (k in DB ? DB[k] : d);
+const put = (k, v) => { DB[k] = v; save(); };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const ROUNDS = [
+  { name: 'Check In', zh: '开场', em: '🧭', c1: '#5fa8d3', c2: '#2b6cb0', min: '0–5′',
+    info: '旅程回顾、今天的任务、灵修（腓立比书 1:6）、5 句话快速 check-in。',
+    slides: [
+      { t: 'title', kick: 'Phase 2 · Lesson 24 · Ready', em: '📈', big: 'Evidence of Change', sub: 'From “I think I improved” → “Here is my proof.”',
+        note: '开场 1 分钟。今天是第二阶段最后一课：不学新内容，用证据回答“我变了吗”。老师今天提问、记录，少讲。' },
+      { t: 'journey', note: '让他点出对他最有用的一课（会变黄），说一个理由。记录在汇总里。' },
+      { t: 'mission', note: '点卡片可以直接跳到那个环节。时间紧：先保朗读对比和一周计划，作品集可以缩成 1 件。' },
+      { t: 'cards', kick: 'Devotion · Perseverance', title: 'A Good Work Has Begun',
+        quote: '“He who began a good work in you will carry it on to completion.” — Philippians 1:6',
+        items: [['blue', 'REFLECT', 'What good work has started in me during these 10 lessons?'], ['green', 'RESPOND', 'One thing that has begun: ______<br>One thing I will keep going with: ______']],
+        callout: 'Not finished ≠ failed. Growth keeps going.', note: '3 分钟。连到今天的 Step 5（Adapt & Persevere）：开始了，但还没完成。' },
+      { t: 'cards', kick: 'Fast Check-In', title: '5 Complete Sentences', n: 5,
+        items: [['blue', 'FEEL', 'I feel ___ because ___.'], ['purple', 'NEED', 'Today I need ___.'], ['yellow', 'GRATITUDE', 'I am grateful for ___ because ___.'], ['green', 'NOTICE', 'I notice ___ about God / myself.'], ['rose', 'ACTION', 'At ___, I will ___; evidence: ___.']],
+        note: '2 分钟，保持简短。这里不评估情绪，只是开场。' },
+    ] },
+  { name: 'Same Passage', zh: '同文冷读', em: '🎙️', c1: '#9b7fd1', c2: '#6b46c1', min: '5–13′',
+    info: '第 15 课那篇文章，同样的规则：只读一遍、不纠正、录音。老师边听边点出误读的词。',
+    slides: [
+      { t: 'cards', kick: 'Reading Evidence · Lesson 15 → Lesson 24', title: 'Same Passage · No Practice First',
+        items: [['blue', 'LESSON 15', 'You read this passage for the first time. We recorded a Cold Read and a Final Read.'], ['purple', 'TODAY', 'Read it ONE time.<br>No teacher correction.<br>Teacher records.'], ['green', 'THEN', 'We listen and compare.<br>What changed? What did not?']],
+        callout: 'This is a fair test: same text, same rules.', note: '规则和第 15 课 Cold Read 一样。读完之前不要给任何提示。' },
+      { t: 'passage', note: '① 点“开始录音”再让他读（浏览器会问麦克风权限）。② 他读时，点他读错 / 卡住的词（变红）。③ 读完点“停止”，下面会出现回放。录音只在这一页，刷新就没了；想保存就点“下载录音”。' },
+      { t: 'score', id: 'read', title: 'Score Today’s Read', cols: ['L24 Today'], rows: ['Accuracy', 'Chunking', 'Prosody'], max: 5,
+        note: '马上打分（/5），和第 15 课同一个标准。误读词数量会自动记进汇总。' },
+    ] },
+  { name: 'Compare', zh: '录音对比', em: '🔁', c1: '#3fb6b2', c2: '#1f7a8c', min: '13–20′',
+    info: '播放第 15 课录音，填入第 15 课的分数，和今天对比；再检查他是不是读懂了（gist / 结构 / 哪句像现在的我）。',
+    slides: [
+      { t: 'score', id: 'cmp', title: 'Compare the Evidence · 3 Recordings', cols: ['L15 Cold', 'L15 Final', 'L24 Today'], rows: ['Accuracy', 'Chunking', 'Prosody'], max: 5, link: 'read',
+        note: '先播第 15 课 Cold Read，再播今天的录音。“L24 Today”一列自动带入上一环节的分数。第 15 课录音找不到：只填当时的分数，在汇总里会注明。' },
+      { t: 'frames', id: 'cmpq', title: 'What Changed?', prompts: ['Today’s first read is closer to the L15 □ cold read / □ final read, because ___.', 'What I practised that made the difference (or stopped practising): ___.'],
+        note: '先让他自己说听到的变化，老师再补充。可以让他自己打字。' },
+      { t: 'passage', mode: 'chunk', title: 'Reading Is Not Just Sound', note: '“Chunk” 模式：让他点每个意群结束的词，会出现 /。“Stress” 模式：点要重读的词。看他自己能不能分出意群——第 15 课是老师给的斜线。' },
+      { t: 'frames', id: 'meaning', title: 'Check the Meaning', prompts: ['GIST — In ONE sentence, this passage is mainly about ___.', 'STRUCTURE — Part 1: ___ → Part 2: ___ → Part 3: ___', 'ME — A sentence that describes me NOW: ___', 'ME — A sentence that is NOT YET me: ___'],
+        note: '确认他读懂了，不只是读顺。最后两题把文章和他自己连起来——这就是第二阶段的主题。' },
+    ] },
+  { name: 'Portfolio', zh: '作品集', em: '🗂️', c1: '#f08a5d', c2: '#d64933', min: '20–35′',
+    info: '三件证据：朗读（刚做完）、广告从初稿到终稿的一处修改、AI 学习者自评。每件都说 Before / Now / Evidence。',
+    slides: [
+      { t: 'cards', kick: 'Portfolio · 3 Pieces of Evidence', title: 'Show the Change · Not Just the Final Product',
+        items: [['blue', '1 · READING / FLUENCY', 'Today’s recording + scores<br>(we just did this)'], ['purple', '2 · WRITING', 'Advertisement Draft 1 → final version<br>Lesson 21'], ['yellow', '3 · AI LEARNING', 'Prompt → AI output → my check → my revision<br>Lessons 22–23']],
+        callout: 'BEFORE, I ___.  NOW, I can ___.  The evidence is ___.',
+        note: '第 23 课的作业：带 3 件证据。没带：用课件 / 笔记本 / 聊天记录现场找，先问“是什么挡住了你”（不批评，诊断障碍）。' },
+      { t: 'frames', id: 'write', title: 'Writing Evidence · My Strongest Revision', prompts: ['DRAFT 1 SAID: ___', 'FINAL SAYS: ___', 'I changed ___ to ___ because ___.'], choice: { id: 'pass', label: 'Which pass?', opts: ['Words', 'Verbs', 'Meaning'] },
+        note: '从广告初稿和终稿里选一处最有意义的修改。看他能不能说出理由。老师在汇总里判断：能 / 需要提示 / 不能。' },
+      { t: 'aiscale', note: '第 22 课的结论：AI 循环课上没做完。今天他先用证据给自己打分（青色），老师再打一个分（黄色），看差距。' },
+    ] },
+  { name: 'Measure', zh: '衡量', em: '📏', c1: '#5bb381', c2: '#2f855a', min: '35–43′',
+    info: 'Your Desired Future Step 4：第 15 课的 SMART goal 达成了吗？独立性量表，第 23 课和今天对比。',
+    slides: [
+      { t: 'frames', id: 'smart', kick: 'Your Desired Future · Step 4 · Measurement', title: 'My Lesson 15 SMART Goal · Did I Reach It?', choice: { id: 'smartres', label: 'Result', opts: ['Yes', 'Partly', 'Not yet'] },
+        prompts: ['MY GOAL WAS (copy from Lesson 15): ___', 'MY EVIDENCE: ___', 'WHAT HELPED: ___', 'WHAT BLOCKED ME: ___'],
+        note: '拿出第 15 课写的 SMART goal 原文。三种结果都可以，关键是证据和原因。' },
+      { t: 'indep', note: '同一张量表（第 23 课用过）。先填第 23 课的分数，再让他自评今天（青色），老师填观察到的分（黄色）。差距最大的那一项就是下一步。' },
+    ] },
+  { name: 'Adapt', zh: '调整与下一步', em: '🧗', c1: '#f2c14e', c2: '#c98a12', min: '43–55′',
+    info: 'Step 5 Adapt & Persevere：Keep / Change / Stop → 4 句反思 → 一周计划 → 给下一阶段的重点排序。',
+    slides: [
+      { t: 'frames', id: 'kcs', kick: 'Your Desired Future · Step 5 · Adapt & Persevere', title: 'Keep · Change · Stop', prompts: ['KEEP — One habit that worked: ___', 'CHANGE — One thing that did not work well, and how I will adjust it: ___', 'STOP — One thing that wastes my time or attention: ___'],
+        note: '根据证据调整，不轻易推翻方向。每格写 1 条，要具体。' },
+      { t: 'frames', id: 'refl', kick: 'Phase 2 · Reflection', title: 'My Phase 2 Reflection · 4 Sentences', prompts: ['Before Phase 2, I ___.', 'Now, I can ___.', 'I still need to improve ___.', 'My next step is ___.'],
+        note: '第 23 课作业里的反思句式。先说出来再写；每句都要能指向一件证据。' },
+      { t: 'frames', id: 'plan', kick: 'Next Step · After Phase 2', title: 'One Habit · One AI Coach · One Week', choice: { id: 'coach', label: 'AI coach (optional)', opts: ['Vocabulary', 'Reading', 'Fluency', 'Writing', 'None'] },
+        prompts: ['WHEN — Every ___ at ___', 'WHAT — I will ___ for ___ minutes.', 'EVIDENCE — I will leave: recording / marked text / draft + edit / checklist: ___'],
+        callout: 'Rule: small enough to actually do. I try first, then ask AI.',
+        note: '做小、做得到。下次课第一件事就检查这份证据。' },
+      { t: 'rank', note: '让他按顺序点 3 张卡（再点一次取消）。只作参考，最后由老师和家长决定。' },
+    ] },
+  { name: 'Exit', zh: '结束', em: '🏁', c1: '#4a5d7e', c2: '#1c2e49', min: '55–60′',
+    info: '回到第 15 课他写的 “I want to become a student who ___.”，写今天的版本；最后看课堂记录汇总。',
+    slides: [
+      { t: 'frames', id: 'exit', kick: 'Exit Ticket · Lesson 15 → Lesson 24', title: 'Who Am I Becoming?', prompts: ['LESSON 15 — I wrote: “I want to become a student who ___.”', 'LESSON 24 — I am closer because ___.', 'My proof is ___.'],
+        note: '先读出他第 15 课写的那句，再写今天的版本。' },
+      { t: 'finale', note: '结束。课后看下一页的课堂记录汇总，复制或下载。' },
+      { t: 'summary', note: '老师课后填最后三项判断，再复制或下载。记录只存在这台设备的浏览器里。' },
+    ] },
+];
+
+let cur = 0, idx = 0, fs = 1, notesOn = true;
+const $ = id => document.getElementById(id);
+
+// ---------- hub ----------
+function roundDone(i) {
+  const ids = { 1: 'read', 2: 'cmp', 3: 'write', 4: 'indep', 5: 'plan', 6: 'exit' };
+  return ids[i] && Object.keys(DB).some(k => k.startsWith(ids[i]));
+}
+function buildHub() {
+  const fan = $('fan'), n = ROUNDS.length; fan.innerHTML = '';
+  ROUNDS.forEach((r, i) => {
+    const c = document.createElement('button');
+    c.className = 'fcard';
+    const off = i - (n - 1) / 2;
+    c.style.background = `linear-gradient(160deg, ${r.c1}, ${r.c2})`;
+    c.style.left = `calc(50% - 75px + ${off * 12.5}%)`;
+    c.style.transform = `rotate(${off * 6}deg) translateY(${Math.abs(off) * 12}px)`;
+    c.style.zIndex = 5 - Math.abs(Math.round(off));
+    c.dataset.base = c.style.transform;
+    c.innerHTML = `<span class="num">${i + 1}</span>${roundDone(i) ? '<span class="done">✅</span>' : ''}<div class="em">${r.em}</div><div><div class="nm">${r.name}</div><div class="sm">${r.min}</div></div>`;
+    c.onmouseenter = () => { showInfo(i); document.querySelectorAll('.fcard').forEach(x => x.style.transform = x.dataset.base); c.style.transform = c.dataset.base + ' translateY(-28px) scale(1.06)'; };
+    c.onclick = () => openDeck(i);
+    fan.appendChild(c);
+  });
+  showInfo(cur);
+}
+function showInfo(i) {
+  const r = ROUNDS[i];
+  $('hubInfo').innerHTML = `<div class="big">${r.em}</div><div><h3>Part ${i + 1} · ${r.name}</h3><p>${r.zh} · ${r.min} · ${r.info}</p></div><button onclick="openDeck(${i})">Enter →</button>`;
+}
+
+// ---------- deck ----------
+function openDeck(i, s = 0) { cur = i; idx = s; $('hub').style.display = 'none'; $('deck').style.display = 'flex'; render(); }
+function goHub() { stopRec(); $('deck').style.display = 'none'; $('hub').style.display = 'flex'; buildHub(); }
+
+const head = s => `${s.kick ? `<div class="kick">${s.kick}</div>` : ''}${s.title ? `<div class="h-mid">${s.title}</div>` : ''}`;
+const pills = (key, max, teacher) => `<span class="pills">${Array.from({ length: max }, (_, k) => `<button class="pill ${teacher ? 't' : ''} ${get(key) === k + 1 ? 'on' : ''}" data-k="${key}" data-v="${k + 1}">${k + 1}</button>`).join('')}</span>`;
+
+function render() {
+  stopRec();
+  const r = ROUNDS[cur], s = r.slides[idx];
+  $('dtitle').textContent = `Part ${cur + 1} · ${r.name}`;
+  $('count').textContent = `${idx + 1} / ${r.slides.length}`;
+  $('dots').innerHTML = r.slides.map((_, k) => `<span class="dot ${k === idx ? 'on' : ''}"></span>`).join('');
+  const el = $('slide'); el.style.setProperty('--fs', fs);
+  let h = '';
+  switch (s.t) {
+    case 'title': h = `<div class="kick">${s.kick}</div><div class="em-big">${s.em}</div><div class="h-big">${s.big}</div><div class="sub">${s.sub}</div>
+      <div class="cards" style="margin-top:4vh">${[['blue', 'LOOK BACK', 'Where did I start in Lesson 15?'], ['purple', 'PROVE', 'What can I show — not just say?'], ['green', 'NEXT STEP', 'What habit do I keep after Phase 2?']].map(card).join('')}</div>`; break;
+    case 'cards': h = `${head(s)}${s.quote ? `<div class="quote">${s.quote}</div>` : ''}<div class="cards" style="--n:${s.n || s.items.length}">${s.items.map(card).join('')}</div>${s.callout ? `<div class="callout">${s.callout}</div>` : ''}`; break;
+    case 'journey': {
+      const st = [['15', 'GOAL'], ['16', 'PROACTIVE'], ['17', 'PRIORITIES'], ['18', 'READING 1'], ['19', 'READING 2'], ['20', 'VOCAB'], ['21', 'WRITING'], ['22', 'AI'], ['23', 'CHALLENGE'], ['24', 'READY']];
+      h = `<div class="kick">Phase 2 · Lessons 15–24</div><div class="h-mid">The 10-Lesson Journey · Final Stop</div>
+        <div class="journey">${st.map(([n, l]) => `<div class="jstop ${n === '24' ? 'today' : ''} ${get('fav') === n ? 'pick' : ''}" data-n="${n}"><div class="n">${n}</div><div class="l">${l}</div><div>${n === '24' ? 'TODAY' : '✓'}</div></div>`).join('')}</div>
+        <div class="sub">The big goal from Lesson 15:</div><div class="h-mid" style="color:var(--teal)">Become a more independent learner.</div>
+        <div class="callout">Which lesson changed you most? Tap it. Give one reason.</div>`; break;
+    }
+    case 'mission': h = `<div class="kick">Lesson 24 · Ready</div><div class="h-mid">Today’s 60-Minute Mission</div><div class="mission">${ROUNDS.map((x, i) => `<div class="c ${['blue', 'purple', 'green', 'yellow', 'blue', 'purple', 'rose'][i]}" data-go="${i}"><b>${i + 1} · ${x.name.toUpperCase()}</b>${x.em} <span class="min">${x.min}</span></div>`).join('')}</div><div class="callout">Evidence first. Opinion second.</div>`; break;
+    case 'passage': {
+      const mode = s.mode || 'mark';
+      const marks = get('pmarks', []), cuts = get('pcuts', []), stress = get('pstress', []);
+      const ws = PASSAGE.split(' ').map((w, i) => `<span class="w ${marks.includes(i) ? 'mark' : ''} ${cuts.includes(i) ? 'cut' : ''} ${stress.includes(i) ? 'stress' : ''}" data-i="${i}">${w}</span>`).join(' ');
+      h = `<div class="kick">${mode === 'mark' ? 'Read Aloud · One Time' : 'Meaning · Chunk + Stress'}</div><div class="h-mid">${s.title || 'Read Naturally · Don’t Rush'}</div>
+        <div class="modes">${(mode === 'mark' ? [['mark', '🔴 Misread']] : [['chunk', '/ Chunk'], ['stress', '★ Stress']]).map(([m, l]) => `<button data-mode="${m}" class="${m === mode ? 'on' : ''}">${l}</button>`).join('')}</div>
+        <div class="passage" id="pass" data-mode="${mode}">${ws}</div>
+        ${mode === 'mark' ? `<div class="btnrow"><button class="bigbtn rec" id="recBtn">⏺ 开始录音</button><span class="timer" id="tmr">0:00</span><span id="aud"></span></div>` : ''}
+        <div class="tally" id="tally"></div>
+        <div class="btnrow"><button class="bigbtn ghost" id="clr">清除这一页的标记</button></div>`; break;
+    }
+    case 'score': {
+      const lk = s.link ? s.link : null;
+      h = `${head(s)}<table class="grid"><tr><th></th>${s.cols.map(c => `<th>${c}</th>`).join('')}</tr>${s.rows.map(rw => `<tr><td>${rw}</td>${s.cols.map((c, j) => {
+        const linked = lk && j === s.cols.length - 1;
+        const key = linked ? `${lk}_${rw}_0` : `${s.id}_${rw}_${j}`;
+        return `<td>${pills(key, s.max)}</td>`; }).join('')}</tr>`).join('')}</table>
+        <div class="legend">点数字打分（/5），再点一次取消。${lk ? '最后一列和“Same Passage”环节同步。' : ''}</div>`; break;
+    }
+    case 'frames': h = `${head(s)}<div class="frames">${s.choice ? `<div class="frame"><label>${s.choice.label}</label><div class="choice">${s.choice.opts.map(o => `<button data-c="${s.choice.id}" data-v="${o}" class="${get(s.choice.id) === o ? 'on' : ''}">${o}</button>`).join('')}</div></div>` : ''}${s.prompts.map((p, i) => `<div class="frame"><label>${p}</label><textarea data-k="${s.id}_${i}" rows="1" placeholder="Type here…">${esc(get(`${s.id}_${i}`, ''))}</textarea></div>`).join('')}</div>${s.callout ? `<div class="callout">${s.callout}</div>` : ''}`; break;
+    case 'aiscale': h = `<div class="kick">Portfolio · AI Learning</div><div class="h-mid">AI User or AI Learner? · Rate Yourself with Evidence</div>
+      <div class="cards" style="--n:2">${[['rose', 'AI USER', '“Write this for me.”<br>Accepts the first output.<br>Cannot explain why.'], ['green', 'AI LEARNER', 'Tries first. Gives criteria.<br>Checks and revises.<br>Can explain final choices.']].map(card).join('')}</div>
+      <div class="scale">AI User ${pills('ai_self', 4)} AI Learner</div><div class="legend">青色 = 他的自评　·　老师观察：${pills('ai_teacher', 4, true)}　·　第 22 课：${pills('ai_l22', 4)}</div>
+      <div class="frames" style="margin-top:2vh"><div class="frame"><label>My evidence: ___</label><textarea data-k="ai_ev" rows="1" placeholder="Type here…">${esc(get('ai_ev', ''))}</textarea></div></div>`; break;
+    case 'indep': {
+      const items = ['Started without waiting for teacher', 'Used the help ladder before asking', 'Used AI for a specific job', 'Checked AI instead of copying', 'Could explain my final answer'];
+      h = `<div class="kick">Your Desired Future · Step 4 · Measurement</div><div class="h-mid">Independence Scorecard · Lesson 23 vs Today</div>
+        <table class="grid"><tr><th></th><th>Lesson 23</th><th>Today · me</th><th>Today · teacher</th></tr>${items.map((it, i) => `<tr><td>${it}</td><td>${pills(`indep_${i}_23`, 4)}</td><td>${pills(`indep_${i}_me`, 4)}</td><td>${pills(`indep_${i}_t`, 4, true)}</td></tr>`).join('')}</table>
+        <div class="callout" id="gap">Which line has the biggest gap? That is your next step.</div>`; break;
+    }
+    case 'rank': {
+      const opts = [['blue', 'LONGER READING', 'Gist · structure · evidence in longer texts'], ['purple', 'ACADEMIC WORDS', 'Words for science, history, school subjects'], ['yellow', 'WRITING', 'Paragraphs, essays, self-editing'], ['green', 'SPEAKING', 'Explain ideas clearly and confidently'], ['rose', 'FLUENCY', 'Read aloud with chunking + stress']];
+      const rk = get('rank', []);
+      h = `<div class="kick">Looking Ahead</div><div class="h-mid">What Should We Work on Next? · Tap Your Top 3</div>
+        <div class="rank">${opts.map(([c, t, b]) => { const p = rk.indexOf(t); return `<div class="c ${c} ${p >= 0 ? 'on' : ''}" data-r="${t}">${p >= 0 ? `<span class="badge">${p + 1}</span>` : ''}<b>${t}</b>${b}</div>`; }).join('')}</div>
+        <div class="frames" style="margin-top:2.5vh"><div class="frame"><label>Because ___</label><textarea data-k="rank_why" rows="1" placeholder="Type here…">${esc(get('rank_why', ''))}</textarea></div></div>`; break;
+    }
+    case 'finale': h = `<div class="finale"><div class="em-big">🏁</div><div class="h-big" style="color:var(--gold)">Phase 2 Complete!</div><div class="h-mid">Your habits travel with you.</div><div class="sub">${esc(get('exit_1', '')) || 'I am closer because ______.'}</div></div>`; break;
+    case 'summary': h = `<div class="h-mid">📋 课堂记录汇总</div>
+      <div class="frames" style="margin-bottom:1.5vh">${[['t_best', '第二阶段最有力的一条独立性证据'], ['t_ai', 'AI 在哪里真正增加了他的独立性？在哪里只是增加了任务？'], ['t_next', '下一阶段的重点（老师决定，参考他的排序）']].map(([k, l]) => `<div class="frame"><label style="font-size:1em;font-family:'PingFang SC',sans-serif">${l}</label><textarea data-k="${k}" rows="1" style="font-size:1em">${esc(get(k, ''))}</textarea></div>`).join('')}</div>
+      <div class="summary" id="sum"></div>
+      <div class="btnrow"><button class="bigbtn" id="cpy">复制</button><button class="bigbtn ghost" id="dl">下载 .txt</button></div>`; break;
+  }
+  el.innerHTML = h;
+  wire(s);
+  let note = ''; for (let k = idx; k >= 0; k--) if (r.slides[k].note) { note = r.slides[k].note; break; }
+  $('note').textContent = '👩‍🏫 ' + note;
+  $('note').classList.toggle('hide', !notesOn);
+  $('stage') && ($('stage').scrollTop = 0);
+}
+function card([c, t, b]) { return `<div class="c ${c}"><b>${t}</b><div class="body">${b}</div></div>`; }
+
+function wire(s) {
+  const el = $('slide');
+  el.querySelectorAll('.pill').forEach(p => p.onclick = () => {
+    const k = p.dataset.k, v = +p.dataset.v;
+    if (get(k) === v) delete DB[k]; else DB[k] = v; save();
+    p.parentNode.querySelectorAll('.pill').forEach(x => x.classList.toggle('on', get(k) === +x.dataset.v));
+    if (s.t === 'indep') showGap();
+  });
+  el.querySelectorAll('textarea').forEach(t => {
+    const fit = () => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; };
+    fit(); t.oninput = () => { put(t.dataset.k, t.value); fit(); if (s.t === 'summary') fillSummary(); };
+    t.onkeydown = e => e.stopPropagation();
+  });
+  el.querySelectorAll('.choice button').forEach(b => b.onclick = () => {
+    const k = b.dataset.c; if (get(k) === b.dataset.v) delete DB[k]; else DB[k] = b.dataset.v; save();
+    b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', get(k) === x.dataset.v));
+  });
+  el.querySelectorAll('.jstop').forEach(j => j.onclick = () => { put('fav', get('fav') === j.dataset.n ? '' : j.dataset.n); render(); });
+  el.querySelectorAll('[data-go]').forEach(c => c.onclick = () => openDeck(+c.dataset.go));
+  el.querySelectorAll('[data-r]').forEach(c => c.onclick = () => {
+    let rk = get('rank', []); const t = c.dataset.r;
+    rk = rk.includes(t) ? rk.filter(x => x !== t) : (rk.length < 3 ? [...rk, t] : rk);
+    put('rank', rk); render();
+  });
+  if (s.t === 'passage') wirePassage();
+  if (s.t === 'indep') showGap();
+  if (s.t === 'summary') {
+    fillSummary();
+    $('cpy').onclick = () => { const t = buildSummary(); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => $('cpy').textContent = '已复制 ✓').catch(() => { const r = document.createRange(); r.selectNode($('sum')); getSelection().removeAllRanges(); getSelection().addRange(r); $('cpy').textContent = '已选中，按 ⌘C'; }); };
+    $('dl').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([buildSummary()], { type: 'text/plain' })); a.download = '2026-10-24_StudentC_Lesson24_record.txt'; a.click(); };
+  }
+}
+
+// ---------- passage: mark / chunk / stress + recording ----------
+function wirePassage() {
+  const pass = $('pass');
+  const keyOf = m => ({ mark: 'pmarks', chunk: 'pcuts', stress: 'pstress' }[m]);
+  const cls = m => ({ mark: 'mark', chunk: 'cut', stress: 'stress' }[m]);
+  const tally = () => {
+    const m = get('pmarks', []).length, c = get('pcuts', []).length, st = get('pstress', []).length;
+    $('tally').textContent = pass.dataset.mode === 'mark' ? `误读 / 卡住：${m} 个词` : `意群断点：${c} 个 · 重读词：${st} 个`;
+  };
+  pass.querySelectorAll('.w').forEach(w => w.onclick = () => {
+    const m = pass.dataset.mode, k = keyOf(m), i = +w.dataset.i; let a = get(k, []);
+    a = a.includes(i) ? a.filter(x => x !== i) : [...a, i]; put(k, a);
+    w.classList.toggle(cls(m)); tally();
+  });
+  document.querySelectorAll('.modes button').forEach(b => b.onclick = () => {
+    pass.dataset.mode = b.dataset.mode;
+    document.querySelectorAll('.modes button').forEach(x => x.classList.toggle('on', x === b)); tally();
+  });
+  $('clr').onclick = () => {
+    const ks = pass.dataset.mode === 'mark' ? ['pmarks'] : ['pcuts', 'pstress'];
+    if (!confirm('清除这一页的标记？')) return;
+    ks.forEach(k => delete DB[k]); save(); render();
+  };
+  tally();
+  const rb = $('recBtn'); if (rb) rb.onclick = () => (rec ? stopRec() : startRec());
+}
+let rec = null, recT = null, recStart = 0, lastAudio = null;
+async function startRec() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const chunks = []; rec = new MediaRecorder(stream);
+    rec.ondataavailable = e => chunks.push(e.data);
+    rec.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      const secs = Math.round((Date.now() - recStart) / 1000); put('read_secs', secs);
+      lastAudio = URL.createObjectURL(new Blob(chunks, { type: rec.mimeType || 'audio/webm' }));
+      rec = null; showAudio();
+    };
+    rec.start(); recStart = Date.now();
+    $('recBtn').textContent = '⏹ 停止'; $('aud').innerHTML = '';
+    recT = setInterval(() => { const s = Math.round((Date.now() - recStart) / 1000); $('tmr') && ($('tmr').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`); }, 250);
+  } catch (e) { alert('无法使用麦克风（权限被拒绝，或浏览器不支持）。请用手机录音。'); }
+}
+function stopRec() { clearInterval(recT); if (rec && rec.state !== 'inactive') rec.stop(); }
+function showAudio() {
+  const a = $('aud'), b = $('recBtn'); if (!a || !b) return;
+  b.textContent = '⏺ 重新录音';
+  a.innerHTML = `<audio controls src="${lastAudio}"></audio><a class="bigbtn ghost" style="text-decoration:none;font-size:.95em" href="${lastAudio}" download="2026-10-24_StudentC_L24_read.webm">下载录音</a>`;
+}
+
+function showGap() {
+  let best = null;
+  for (let i = 0; i < 5; i++) { const me = get(`indep_${i}_me`), t = get(`indep_${i}_t`); if (me && t && (!best || Math.abs(me - t) > best.d)) best = { i, d: Math.abs(me - t) }; }
+  const items = ['Started without waiting for teacher', 'Used the help ladder before asking', 'Used AI for a specific job', 'Checked AI instead of copying', 'Could explain my final answer'];
+  $('gap').textContent = best && best.d > 0 ? `Biggest gap: “${items[best.i]}” → that is your next step.` : 'Which line has the biggest gap? That is your next step.';
+}
+
+// ---------- summary ----------
+function buildSummary() {
+  const v = k => (get(k) === undefined || get(k) === '' ? '—' : get(k));
+  const L = [];
+  L.push('Student C · 第二阶段第 24 课 · 2026-10-24', '');
+  L.push(`最有用的一课：第 ${v('fav')} 课`);
+  L.push('', '【1 朗读对比】（/5）');
+  ['Accuracy', 'Chunking', 'Prosody'].forEach(r => L.push(`  ${r.padEnd(9)} L15 冷读 ${v(`cmp_${r}_0`)} · L15 练习后 ${v(`cmp_${r}_1`)} · L24 今天 ${v(`read_${r}_0`)}`));
+  const marks = get('pmarks', []).sort((a, b) => a - b).map(i => PASSAGE.split(' ')[i].replace(/[.,]/g, ''));
+  L.push(`  误读 / 卡住 ${marks.length} 个：${marks.join(', ') || '—'}`);
+  L.push(`  朗读用时：${get('read_secs') ? get('read_secs') + ' 秒' : '—'}`);
+  L.push(`  他自己分的意群断点：${get('pcuts', []).length} 个 · 重读词：${get('pstress', []).length} 个`);
+  if (!get('cmp_Accuracy_0')) L.push('  （没有填第 15 课分数）');
+  L.push(`  更接近：${v('cmpq_0')}`, `  原因：${v('cmpq_1')}`);
+  L.push('', '【意思检查】', `  Gist：${v('meaning_0')}`, `  结构：${v('meaning_1')}`, `  现在的我：${v('meaning_2')}`, `  还不是我：${v('meaning_3')}`);
+  L.push('', '【2 写作修改】', `  初稿：${v('write_0')}`, `  终稿：${v('write_1')}`, `  理由：${v('write_2')}`, `  哪一遍：${v('pass')}`);
+  L.push('', '【3 AI 学习者】（1–4）', `  第 22 课 ${v('ai_l22')} · 今天自评 ${v('ai_self')} · 老师 ${v('ai_teacher')}`, `  证据：${v('ai_ev')}`);
+  L.push('', '【4 SMART goal】', `  结果：${v('smartres')}`, `  目标：${v('smart_0')}`, `  证据：${v('smart_1')}`, `  帮到：${v('smart_2')}`, `  挡住：${v('smart_3')}`);
+  L.push('', '【5 独立性量表】（第 23 课 / 今天自评 / 今天老师）');
+  ['不等老师就开始', '先用求助阶梯再问', '让 AI 做一件具体的事', '检查 AI，而不是照抄', '能解释自己的最终答案'].forEach((t, i) => L.push(`  ${t}：${v(`indep_${i}_23`)} / ${v(`indep_${i}_me`)} / ${v(`indep_${i}_t`)}`));
+  L.push('', '【Keep / Change / Stop】', `  Keep：${v('kcs_0')}`, `  Change：${v('kcs_1')}`, `  Stop：${v('kcs_2')}`);
+  L.push('', '【4 句反思】', ...[0, 1, 2, 3].map(i => `  ${i + 1}. ${v(`refl_${i}`)}`));
+  L.push('', '【一周计划】', `  时间：${v('plan_0')}`, `  做什么：${v('plan_1')}`, `  证据：${v('plan_2')}`, `  AI 角色：${v('coach')}`);
+  L.push('', `【下一阶段他的排序】${get('rank', []).map((t, i) => `${i + 1}. ${t}`).join('  ') || '—'}`, `  理由：${v('rank_why')}`);
+  L.push('', '【Exit】', `  第 15 课：${v('exit_0')}`, `  今天：${v('exit_1')}`, `  证据：${v('exit_2')}`);
+  L.push('', '【老师判断】', `  最有力的独立性证据：${v('t_best')}`, `  AI 的作用：${v('t_ai')}`, `  下一阶段重点：${v('t_next')}`);
+  return L.join('\n');
+}
+function fillSummary() { $('sum').textContent = buildSummary(); }
+
+// ---------- nav ----------
+function move(d) {
+  const n = ROUNDS[cur].slides.length;
+  if (idx + d >= n) { if (cur < ROUNDS.length - 1) { cur++; idx = 0; } else return; }
+  else if (idx + d < 0) { if (cur > 0) { cur--; idx = ROUNDS[cur].slides.length - 1; } else return; }
+  else idx += d;
+  render();
+}
+$('home').onclick = goHub;
+$('prev').onclick = () => move(-1);
+$('next').onclick = () => move(1);
+$('fsm').onclick = () => { fs = Math.max(.6, fs - .1); render(); };
+$('fsp').onclick = () => { fs = Math.min(1.6, fs + .1); render(); };
+$('ntog').onclick = () => { notesOn = !notesOn; $('note').classList.toggle('hide', !notesOn); };
+$('toSummary').onclick = () => openDeck(ROUNDS.length - 1, ROUNDS[ROUNDS.length - 1].slides.length - 1);
+$('resetAll').onclick = () => { if (confirm('清空这台设备上第 24 课的所有填写和打分？（无法恢复）')) { DB = {}; save(); buildHub(); } };
+document.addEventListener('keydown', e => {
+  if ($('deck').style.display !== 'flex') return;
+  if (e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); move(1); }
+  if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); move(-1); }
+  if (e.key === 'Escape') goHub();
+  if (e.key.toLowerCase() === 'n') $('ntog').click();
+});
+buildHub();
+// #r=3&s=2 opens Part 3, slide 2 directly
+const hp = new URLSearchParams(location.hash.slice(1));
+if (hp.has('r')) openDeck(Math.min(ROUNDS.length, +hp.get('r')) - 1, Math.max(0, (+hp.get('s') || 1) - 1));
+</script>
+</body>
+</html>
