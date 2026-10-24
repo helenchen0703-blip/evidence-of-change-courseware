@@ -207,7 +207,7 @@ const ROUNDS = [
         note: '马上打分（/5），和第 15 课同一个标准。误读词数量会自动记进汇总。' },
     ] },
   { name: 'Compare', zh: '录音对比', em: '🔁', c1: '#3fb6b2', c2: '#1f7a8c', min: '13–20′',
-    info: '播放第 15 课录音，填入第 15 课的分数，和今天对比；再检查他是不是读懂了（gist / 结构 / 哪句像现在的我）。',
+    info: '播放第 15 课录音，填入第 15 课的分数，和今天对比；再检查他是不是读懂了（gist / 结构 / 哪句像现在的我）；最后读一段没读过的牛津课文，检验迁移。',
     slides: [
       { t: 'score', id: 'cmp', title: 'Compare the Evidence · 3 Recordings', cols: ['L15 Cold', 'L15 Final', 'L24 Today'], rows: ['Accuracy', 'Chunking', 'Prosody'], max: 5, link: 'read',
         note: '先播第 15 课 Cold Read，再播今天的录音。“L24 Today”一列自动带入上一环节的分数。第 15 课录音找不到：只填当时的分数，在汇总里会注明。' },
@@ -216,6 +216,15 @@ const ROUNDS = [
       { t: 'passage', mode: 'chunk', title: 'Reading Is Not Just Sound', note: '“Chunk” 模式：让他点每个意群结束的词，会出现 /。“Stress” 模式：点要重读的词。看他自己能不能分出意群——第 15 课是老师给的斜线。' },
       { t: 'frames', id: 'meaning', title: 'Check the Meaning', prompts: ['GIST — In ONE sentence, this passage is mainly about ___.', 'STRUCTURE — Part 1: ___ → Part 2: ___ → Part 3: ___', 'ME — A sentence that describes me NOW: ___', 'ME — A sentence that is NOT YET me: ___'],
         note: '确认他读懂了，不只是读顺。最后两题把文章和他自己连起来——这就是第二阶段的主题。' },
+      { t: 'cards', kick: 'Transfer · A Text You Have Never Read', title: 'New Text · Can You Use the Strategy Alone?',
+        items: [['blue', '1 · COLD READ', 'Read the new text ONE time. Teacher records.'], ['purple', '2 · CHUNK', 'Mark / where one idea ends. Do it yourself.'], ['yellow', '3 · GIST + STRUCTURE', 'What is it mainly about? Intro → Reason 1 → predict Reasons 2 and 3.'], ['green', '4 · STUCK?', 'Re-read → infer → ask small. Which word blocked you? What did you do?']],
+        callout: 'Same strategy. New text. That is real independence.',
+        note: '迁移检验（7–8 分钟）。课文用课本或本地 pptx：Oxford Discover 3 Unit 4《Moving from Here… to There》p.38–39，读开头到 Jobs 一段结束。不预教词、不提示。课文原文不放在这个公开网页里。' },
+      { t: 'score', id: 'new', title: 'New Text vs Same Passage', cols: ['Same passage', 'New text'], rows: ['Accuracy', 'Chunking', 'Prosody'], max: 5, linkFirst: 'read',
+        note: '第一列自动带入今天熟文章的分数。差很多 = 熟悉度在起作用；差不多 = 能力真的迁移了。' },
+      { t: 'frames', id: 'newt', title: 'Transfer · What Did You Do?', choice: { id: 'newstuck', label: 'When I got stuck, I…', opts: ['Re-read', 'Guessed from context', 'Asked a small question', 'Said “I don’t know”'] },
+        prompts: ['GIST — This text is mainly about ___.', 'STRUCTURE — Reason 1: ___ · I predict Reasons 2 and 3: ___', 'A word that blocked me: ___ · What I did: ___'],
+        note: '这一页看独立性，不是答案对错。可以选多次，记最主要的那一种。' },
     ] },
   { name: 'Portfolio', zh: '作品集', em: '🗂️', c1: '#f08a5d', c2: '#d64933', min: '20–35′',
     info: '三件证据：朗读（刚做完）、广告从初稿到终稿的一处修改、AI 学习者自评。每件都说 Before / Now / Evidence。',
@@ -331,8 +340,8 @@ function render() {
     case 'score': {
       const lk = s.link ? s.link : null;
       h = `${head(s)}<table class="grid"><tr><th></th>${s.cols.map(c => `<th>${c}</th>`).join('')}</tr>${s.rows.map(rw => `<tr><td>${rw}</td>${s.cols.map((c, j) => {
-        const linked = lk && j === s.cols.length - 1;
-        const key = linked ? `${lk}_${rw}_0` : `${s.id}_${rw}_${j}`;
+        const linked = (lk && j === s.cols.length - 1) || (s.linkFirst && j === 0);
+        const key = linked ? `${lk || s.linkFirst}_${rw}_0` : `${s.id}_${rw}_${j}`;
         return `<td>${pills(key, s.max)}</td>`; }).join('')}</tr>`).join('')}</table>
         <div class="legend">点数字打分（/5），再点一次取消。${lk ? '最后一列和“Same Passage”环节同步。' : ''}</div>`; break;
     }
@@ -474,6 +483,9 @@ function buildSummary() {
   if (!get('cmp_Accuracy_0')) L.push('  （没有填第 15 课分数）');
   L.push(`  更接近：${v('cmpq_0')}`, `  原因：${v('cmpq_1')}`);
   L.push('', '【意思检查】', `  Gist：${v('meaning_0')}`, `  结构：${v('meaning_1')}`, `  现在的我：${v('meaning_2')}`, `  还不是我：${v('meaning_3')}`);
+  L.push('', '【迁移：新课文】Oxford Discover 3 Unit 4 p.38–39（熟文章 / 新课文）');
+  ['Accuracy', 'Chunking', 'Prosody'].forEach(r => L.push(`  ${r.padEnd(9)} ${v(`read_${r}_0`)} / ${v(`new_${r}_1`)}`));
+  L.push(`  卡住时：${v('newstuck')}`, `  Gist：${v('newt_0')}`, `  结构：${v('newt_1')}`, `  卡住的词和做法：${v('newt_2')}`);
   L.push('', '【2 写作修改】', `  初稿：${v('write_0')}`, `  终稿：${v('write_1')}`, `  理由：${v('write_2')}`, `  哪一遍：${v('pass')}`);
   L.push('', '【3 AI 学习者】（1–4）', `  第 22 课 ${v('ai_l22')} · 今天自评 ${v('ai_self')} · 老师 ${v('ai_teacher')}`, `  证据：${v('ai_ev')}`);
   L.push('', '【4 SMART goal】', `  结果：${v('smartres')}`, `  目标：${v('smart_0')}`, `  证据：${v('smart_1')}`, `  帮到：${v('smart_2')}`, `  挡住：${v('smart_3')}`);
